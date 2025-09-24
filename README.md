@@ -9,6 +9,7 @@ A full-stack **Project Management Dashboard** with Kanban board, task prioritiza
 - [Setup](#setup)
   - [Backend](#backend-setup)
   - [Frontend](#frontend-setup)
+- Testing ( Backend )
 - [Project Architecture](#project-architecture)
 - [API Endpoints](#api-endpoints)
 - [Usage](#usage)
@@ -33,6 +34,7 @@ A full-stack **Project Management Dashboard** with Kanban board, task prioritiza
 
 ## Setup
 
+
 ### Backend Setup
 1. Navigate to the backend folder:
    ```bash
@@ -47,6 +49,7 @@ A full-stack **Project Management Dashboard** with Kanban board, task prioritiza
 4. Start the backend server:
    npm run dev
 
+
 ### Frontend Setup
 1. Navigate to the backend folder:
    ```bash
@@ -56,6 +59,18 @@ A full-stack **Project Management Dashboard** with Kanban board, task prioritiza
 
 3. Start the frontend server:
    npm run dev
+
+
+## Testing ( Backend )
+1.  We use Jest for backend unit tests.
+    ```bash
+    cd svaraai-task-app-backend
+    npm install --save-dev jest supertest
+    npm run test
+    
+2. Tests are located in /tests folder (e.g., tasks.test.js).
+3. Covers creating, updating, fetching, and deleting tasks via API endpoints.
+4. Ensures API routes respond correctly and database updates as expected.
 
 
 ###Project Architecture
@@ -114,6 +129,7 @@ DELETE    	 /api/projects/:projectId/tasks/:taskId	       Delete
 1. Ensure MongoDB is running locally or use a cloud database.
 2. Backend must run on port 4000 and frontend on 3000.
 3. All API requests require JWT token for authentication.
+4. Tests can be run independently of frontend to validate backend logic.
 
 
 ### Quick Video Demo (Link - https://drive.google.com/file/d/12804IhEp9H4T1bI9DbwJATPRWDHbrx4Y/view?usp=drive_link )
