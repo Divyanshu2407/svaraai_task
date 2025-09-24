@@ -59,68 +59,51 @@ This is a full-stack MERN-style architecture with a separation of concerns:
  # Frontend (Next.js + React + TypeScript)
 
 - Pages: dashboard, project/[projectId] for Kanban.
-
 - Components: Reusable UI elements like Card, Modal.
-
 - State management: React useState and useEffect for fetching and updating tasks/projects.
-
 - Drag-and-drop: DnD Kit for Kanban board.
-
 - API calls: Axios to communicate with backend.
 
  # Backend (Node.js + Express)
 
-- Routes
+Routes
 
 - authRoutes.js – Signup/Login
-
 - projectRoutes.js – CRUD for projects
-
 - taskRoutes.js – CRUD for tasks under a project
 
-- Controllers
+Controllers
 
 - Handle business logic for tasks, projects, authentication.
-
 - Services/Repositories
-
 - Encapsulate database operations for tasks/projects.
 
-- Middleware
+
+Middleware
 
 - JWT authentication middleware to protect routes.
+- Database (MongoDB + Mongoose).
+- Collections: users, projects, tasks.
 
-- Database (MongoDB + Mongoose)
-
-- Collections: users, projects, tasks
-
-- Relations:
-
+Relations:
 - A Project has many Tasks.
-
 - A Task belongs to one Project.
 
+
 ## API Endpoints
- - # Auth
 
-# POST /api/auth/signup – Register user
+ Auth
+ -  POST /api/auth/signup – Register user
+ -  POST /api/auth/login – Login user
+ -  Projects
+ -  POST /api/projects – Create project
+ -  GET /api/projects – List projects
+ -  DELETE /api/projects/:id – Delete project
 
-# POST /api/auth/login – Login user
 
-# Projects
+### Tasks
 
-# POST /api/projects – Create project
-
-# GET /api/projects – List projects
-
-# DELETE /api/projects/:id – Delete project
-
-# Tasks
-
-# GET /api/projects/:projectId/tasks – List tasks for a project
-
-# POST /api/projects/:projectId/tasks – Create task
-
-# PATCH /api/projects/:projectId/tasks/:taskId – Update task
-
-# DELETE /api/projects/:projectId/tasks/:taskId – Delete task
+- GET /api/projects/:projectId/tasks – List tasks for a project
+- POST /api/projects/:projectId/tasks – Create task
+- PATCH /api/projects/:projectId/tasks/:taskId – Update task
+- DELETE /api/projects/:projectId/tasks/:taskId – Delete task
