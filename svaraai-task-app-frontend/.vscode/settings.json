@@ -1,0 +1,11 @@
+{
+    "tailwindCSS.includeLanguages": {
+        "plaintext": "html",
+        "typescript": "html",
+        "typescriptreact": "html",
+        "javascript": "html",
+        "javascriptreact": "html"
+    },
+    "tailwindCSS.lint.invalidScreen": "error",
+    "tailwindCSS.lint.invalidVariant": "warning",
+}
