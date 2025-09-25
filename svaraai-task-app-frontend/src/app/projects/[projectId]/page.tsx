@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, ChangeEvent } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getTasks, createTask, updateTask, deleteTask } from '@/services/taskService';
@@ -43,14 +43,20 @@ export default function KanbanBoard() {
   const { token } = useAuth();
   const params = useParams();
   const projectId = params?.projectId as string | undefined;
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Create-task modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTaskTitle, setModalTaskTitle] = useState('');
   const [modalTaskPriority, setModalTaskPriority] = useState<'low' | 'medium' | 'high'>('low');
   const [modalTaskDeadline, setModalTaskDeadline] = useState('');
+
+  // Delete-confirmation modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
 
   const loadTasks = async () => {
     if (!token || !projectId) return;
@@ -79,14 +85,10 @@ export default function KanbanBoard() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high':
-        return 'bg-red-500';
-      case 'medium':
-        return 'bg-yellow-400';
-      case 'low':
-        return 'bg-green-400';
-      default:
-        return 'bg-gray-400';
+      case 'high': return 'bg-red-500';
+      case 'medium': return 'bg-yellow-400';
+      case 'low': return 'bg-green-400';
+      default: return 'bg-gray-400';
     }
   };
 
@@ -99,8 +101,7 @@ export default function KanbanBoard() {
     const task = tasks.find((t) => t._id === taskId);
     if (!task || task.status === newStatus) return;
 
-    const updatedTasks = tasks.map((t) => (t._id === taskId ? { ...t, status: newStatus } : t));
-    setTasks(updatedTasks);
+    setTasks(tasks.map((t) => (t._id === taskId ? { ...t, status: newStatus } : t)));
 
     if (token && projectId) {
       try {
@@ -125,11 +126,18 @@ export default function KanbanBoard() {
     }
   };
 
-  const handleDeleteTask = async (task: Task) => {
-    if (!token || !projectId) return;
+  const confirmDeleteTask = (task: Task) => {
+    setTaskToDelete(task);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteTask = async () => {
+    if (!token || !projectId || !taskToDelete) return;
     try {
-      await deleteTask(token, projectId, task._id);
-      setTasks((prev) => prev.filter((t) => t._id !== task._id));
+      await deleteTask(token, projectId, taskToDelete._id);
+      setTasks((prev) => prev.filter((t) => t._id !== taskToDelete._id));
+      setShowDeleteModal(false);
+      setTaskToDelete(null);
     } catch (err) {
       console.error(err);
     }
@@ -167,12 +175,13 @@ export default function KanbanBoard() {
     t.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (loading)
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <span className="text-lg text-gray-500">Loading tasks...</span>
       </div>
     );
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -188,13 +197,15 @@ export default function KanbanBoard() {
 
       <div className="flex justify-end mb-4">
         <button
+          type="button"
           onClick={() => setIsModalOpen(true)}
-          className="px-5 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
+          className="px-5 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition cursor-pointer"
         >
           + Add Task
         </button>
       </div>
 
+      {/* Create Task Modal */}
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title="Create Task">
         <div className="flex flex-col gap-4">
           <input
@@ -221,20 +232,48 @@ export default function KanbanBoard() {
           />
           <div className="flex justify-end gap-2">
             <button
+              type="button"
               onClick={handleCloseModal}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition"
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition cursor-pointer"
             >
               Cancel
             </button>
             <button
+              type="button"
               onClick={handleCreateTask}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition cursor-pointer"
             >
               Create
             </button>
           </div>
         </div>
       </Modal>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white rounded p-6 max-w-sm w-full shadow-lg">
+            <h2 className="text-lg font-semibold mb-4">Confirm Delete</h2>
+            <p className="mb-4">Are you sure you want to delete “{taskToDelete?.title}”?</p>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteTask}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 cursor-pointer"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <div className="flex gap-6 overflow-x-auto pb-4">
@@ -269,15 +308,16 @@ export default function KanbanBoard() {
                               onChange={(e) =>
                                 handleStatusOrPriorityChange(task, task.status, e.target.value)
                               }
-                              className="ml-2 px-1 rounded border border-gray-300 text-xs"
+                              className="ml-2 px-1 rounded border border-gray-300 text-xs cursor-pointer"
                             >
                               <option value="low">Low</option>
                               <option value="medium">Medium</option>
                               <option value="high">High</option>
                             </select>
                             <button
-                              onClick={() => handleDeleteTask(task)}
-                              className="text-red-500 text-xs ml-2"
+                              type="button"
+                              onClick={() => confirmDeleteTask(task)}
+                              className="text-red-500 text-xs ml-2 hover:text-red-700 cursor-pointer"
                             >
                               Delete
                             </button>
